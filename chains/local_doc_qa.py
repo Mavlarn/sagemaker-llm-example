@@ -141,8 +141,9 @@ class LocalDocQA:
         self.top_k = top_k
 
     def load_vectore_store(self, vs_path: str = DEFAULT_VS):
-        print('load vector_store')
-        self.vector_store = FAISS.load_local(vs_path, self.embeddings)
+        vs_full_path = os.path.join(VS_ROOT_PATH, DEFAULT_VS)
+        print('load vector_store:', vs_full_path)
+        self.vector_store = FAISS.load_local(vs_full_path, self.embeddings)
 
 
     def init_knowledge_vector_store(self,
