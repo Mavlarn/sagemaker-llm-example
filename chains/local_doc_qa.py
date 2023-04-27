@@ -2,7 +2,7 @@ from langchain.chains import RetrievalQA
 from langchain.chains.question_answering import load_qa_chain
 from langchain.docstore.document import Document
 from langchain import PromptTemplate, LLMChain, SagemakerEndpoint
-from langchain.llms.sagemaker_endpoint import ContentHandlerBase
+from langchain.llms.sagemaker_endpoint import LLMContentHandler
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.document_loaders import UnstructuredFileLoader
@@ -25,7 +25,7 @@ VECTOR_SEARCH_TOP_K = 6
 LLM_HISTORY_LEN = 3
 
 
-class ContentHandler(ContentHandlerBase):
+class ContentHandler(LLMContentHandler):
     content_type = "application/json"
     accepts = "application/json"
 
@@ -92,8 +92,12 @@ class LocalDocQA:
                  top_k=VECTOR_SEARCH_TOP_K,
                  use_ptuning_v2: bool = USE_PTUNING_V2
                  ):
+        print('init: llm mode:', llm_model)
+        print('init: embedding_model:', embedding_model)
+
         # self.llm = SagemakerLLM()
         model_ep_name=llm_model_dict[llm_model]
+        print('init model from endpoint:', model_ep_name)
         self.llm = SagemakerEndpoint(
             endpoint_name=model_ep_name,
         #         credentials_profile_name="credentials-profile-name", 
