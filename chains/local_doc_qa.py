@@ -82,6 +82,7 @@ class LocalDocQA:
     embeddings: object = None
     vector_store: object = None
     top_k: int = VECTOR_SEARCH_TOP_K
+    medqa_vs_path: str = ""
 
     def init_cfg(self,
                  embedding_model: str = EMBEDDING_MODEL,
@@ -100,6 +101,10 @@ class LocalDocQA:
             model_kwargs={"temperature": 0.1},
             content_handler=content_handler
         )
+        self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model_dict[embedding_model],
+                                        model_kwargs={'device': 'cuda'})
+
+
         # self.llm.history_len = llm_history_len
         PROMPT = PromptTemplate(
             template=PROMPT_TEMPLATE, input_variables=["context", "question"]

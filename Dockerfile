@@ -2,6 +2,7 @@ FROM python:3.8
 
 MAINTAINER "chatGLM"
 
+COPY requirements.txt /chatGLM/
 WORKDIR /chatGLM
 
 RUN pip install --user torch torchvision tensorboard cython -i https://pypi.tuna.tsinghua.edu.cn/simple
