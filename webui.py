@@ -173,6 +173,41 @@ with gr.Blocks(css=block_css) as demo:
                 mode = gr.Radio(["LLM 对话", "知识库问答"],
                                 label="请选择使用模式",
                                 value="知识库问答", )
+
+                llm_setting = gr.Accordion("配置模型参数")
+                mode.change(fn=change_mode,
+                            inputs=mode,
+                            outputs=llm_setting)
+                with llm_setting:
+                    llm_model = gr.Radio(llm_model_dict_list,
+                                        label="LLM 模型",
+                                        value=LLM_MODEL,
+                                        interactive=True)
+                    llm_history_len = gr.Slider(0,
+                                                10,
+                                                value=LLM_HISTORY_LEN,
+                                                step=1,
+                                                label="LLM 对话轮数",
+                                                interactive=True)
+                    use_ptuning_v2 = gr.Checkbox(USE_PTUNING_V2,
+                                                label="使用p-tuning-v2微调过的模型",
+                                                interactive=True)
+                    embedding_model = gr.Radio(embedding_model_dict_list,
+                                            label="Embedding 模型",
+                                            value=EMBEDDING_MODEL,
+                                            interactive=True)
+                    top_k = gr.Slider(1,
+                                    20,
+                                    value=VECTOR_SEARCH_TOP_K,
+                                    step=1,
+                                    label="向量匹配 top k",
+                                    interactive=True)
+                    load_model_button = gr.Button("重新加载模型")
+                    load_model_button.click(reinit_model,
+                                            show_progress=True,
+                                            inputs=[llm_model, embedding_model, llm_history_len, top_k, chatbot],
+                                            outputs=chatbot
+                                            )
                 vs_setting = gr.Accordion("配置知识库")
                 mode.change(fn=change_mode,
                             inputs=mode,
@@ -253,11 +288,11 @@ with gr.Blocks(css=block_css) as demo:
                           label="向量匹配 top k",
                           interactive=True)
         load_model_button = gr.Button("重新加载模型")
-    load_model_button.click(reinit_model,
-                            show_progress=True,
-                            inputs=[llm_model, embedding_model, llm_history_len, top_k, chatbot],
-                            outputs=chatbot
-                            )
+        load_model_button.click(reinit_model,
+                                show_progress=True,
+                                inputs=[llm_model, embedding_model, llm_history_len, top_k, chatbot],
+                                outputs=chatbot
+                                )
 
 (demo
  .queue(concurrency_count=3)
