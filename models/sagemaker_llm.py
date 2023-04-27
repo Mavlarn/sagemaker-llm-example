@@ -1,24 +1,15 @@
 import json
 from langchain.llms.base import LLM
-from typing import Optional, List
-from langchain.llms.utils import enforce_stop_tokens
-from langchain.llms.sagemaker_endpoint import LLMContentHandler
-from transformers import AutoTokenizer, AutoModel, AutoConfig
-import torch
-from configs.model_config import LLM_DEVICE
+from langchain.llms.sagemaker_endpoint import ContentHandlerBase
 from langchain.callbacks.base import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 from langchain import SagemakerEndpoint
 
-from typing import Dict, Tuple, Union, Optional
-
-DEVICE = LLM_DEVICE
-DEVICE_ID = "0" if torch.cuda.is_available() else None
-CUDA_DEVICE = f"{DEVICE}:{DEVICE_ID}" if DEVICE_ID else DEVICE
+from typing import Dict
 
 
-class ContentHandler(LLMContentHandler):
+class ContentHandler(ContentHandlerBase):
     content_type = "application/json"
     accepts = "application/json"
 
