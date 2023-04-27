@@ -108,6 +108,9 @@ class LocalDocQA:
         self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model_dict[embedding_model],
                                         model_kwargs={'device': 'cuda'})
 
+        if not self.vector_store:
+            self.load_vectore_store()
+
 
         # self.llm.history_len = llm_history_len
         PROMPT = PromptTemplate(
@@ -136,6 +139,11 @@ class LocalDocQA:
         self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model_dict[embedding_model],
                                                 model_kwargs={'device': 'cuda'})
         self.top_k = top_k
+
+    def load_vectore_store(self, vs_path: str = DEFAULT_VS):
+        print('load vector_store')
+        self.vector_store = FAISS.load_local(vs_path, self.embeddings)
+
 
     def init_knowledge_vector_store(self,
                                     filepath: str or List[str],
@@ -191,6 +199,7 @@ class LocalDocQA:
         else:
             print("文件均未成功加载，请检查依赖包或替换为其他文件再次上传。")
             return None, loaded_files
+
 
     def get_direct_answer(self,
                          query,

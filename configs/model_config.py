@@ -34,6 +34,7 @@ VS_ROOT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "vector_
 vs_index_dict = {
     "cMedQA2": "med_qa_FAISS_index"
 }
+DEFAULT_VS = "med_qa_FAISS_index"
 
 UPLOAD_ROOT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "content", "")
 
