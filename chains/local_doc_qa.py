@@ -1,14 +1,15 @@
 from langchain.chains import RetrievalQA
 from langchain.chains.question_answering import load_qa_chain
 from langchain.docstore.document import Document
-from langchain import PromptTemplate, LLMChain
+from langchain import PromptTemplate, LLMChain, SagemakerEndpoint
+from langchain.llms.sagemaker_endpoint import ContentHandlerBase
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.memory import ConversationBufferMemory
 
 
-from models.sagemaker_llm import SagemakerLLM
+# from models.sagemaker_llm import SagemakerLLM
 from typing import Dict
 import os, json
 from configs.model_config import *
@@ -23,6 +24,21 @@ VECTOR_SEARCH_TOP_K = 6
 # LLM input history length
 LLM_HISTORY_LEN = 3
 
+
+class ContentHandler(ContentHandlerBase):
+    content_type = "application/json"
+    accepts = "application/json"
+
+    def transform_input(self, prompt: str, model_kwargs: Dict) -> bytes:
+        input = {"ask": prompt, **model_kwargs}
+        input_str = json.dumps(input)
+        return input_str.encode('utf-8')
+    
+    def transform_output(self, output: bytes) -> str:
+        response_json = json.loads(output.read().decode("utf-8"))
+        return response_json["answer"]
+
+content_handler = ContentHandler()
 
 def load_file(filepath):
     if filepath.lower().endswith(".md"):
@@ -75,27 +91,34 @@ class LocalDocQA:
                  top_k=VECTOR_SEARCH_TOP_K,
                  use_ptuning_v2: bool = USE_PTUNING_V2
                  ):
-        self.llm = SagemakerLLM()
-        self.llm.load_model(model_name_or_path=llm_model_dict[llm_model])
-        self.llm.history_len = llm_history_len
+        # self.llm = SagemakerLLM()
+        model_ep_name=llm_model_dict[llm_model]
+        self.llm = SagemakerEndpoint(
+            endpoint_name=model_ep_name,
+        #         credentials_profile_name="credentials-profile-name", 
+            region_name="us-east-1", 
+            model_kwargs={"temperature": 0.1},
+            content_handler=content_handler
+        )
+        # self.llm.history_len = llm_history_len
         PROMPT = PromptTemplate(
             template=PROMPT_TEMPLATE, input_variables=["context", "question"]
         )
         chain_type_kwargs = {"prompt": PROMPT}
         self.retrievalqa_chain = RetrievalQA.from_chain_type(
-            llm=self.llm.model,
+            llm=self.llm,
             chain_type="stuff",
             memory=ConversationBufferMemory(),
             retriever=self.vector_store.as_retriever(),
             chain_type_kwargs=chain_type_kwargs
         )
         self.simple_chain = load_qa_chain(
-            llm=self.llm.model,
+            llm=self.llm,
             prompt=PROMPT,
             memory=ConversationBufferMemory()
         )
         self.llm_chain = LLMChain(
-            llm=self.llm.model, 
+            llm=self.llm, 
             prompt=PromptTemplate.from_template("{query}"),
             memory=ConversationBufferMemory(),
             output_key = 'result'

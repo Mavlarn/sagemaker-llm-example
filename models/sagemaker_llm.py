@@ -37,6 +37,10 @@ class SagemakerLLM(LLM):
     def __init__(self):
         super().__init__()
 
+    def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+        print('__call__ called')
+        return ""
+
     @property
     def _llm_type(self) -> str:
         return self.llm_type
